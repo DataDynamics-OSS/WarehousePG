@@ -1,0 +1,77 @@
+# Template — placeholders (@...@) are filled in by scripts/build-rpm.sh.
+%global gpname      @GP_NAME@
+%global gpversion   @GP_VERSION@
+%global gphomebase  @GPHOME_BASE@
+%global gphome      %{gphomebase}/%{gpname}-%{gpversion}
+
+# The tarball is a fully-built tree; skip stripping / bytecompiling / debuginfo
+# so vendored libs and shipped python are left untouched.
+%global __os_install_post %{nil}
+%global debug_package %{nil}
+%define _build_id_links none
+
+Name:           warehouse-pg
+Version:        @RPM_VERSION@
+Release:        @RPM_RELEASE@%{?dist}
+Summary:        WarehousePG (WHPG) %{gpversion} — MPP data warehouse based on Greenplum/PostgreSQL
+License:        ASL 2.0 and PostgreSQL
+URL:            https://github.com/warehouse-pg/warehouse-pg
+BuildArch:      @ARCH@
+Prefix:         %{gphomebase}
+AutoReqProv:    no
+Source0:        @TARBALL_NAME@
+
+# Shared-library dependencies (derived from the shipped ELF binaries; the
+# vendored libxerces-c / libLLVM and WHPG's own libpq/libecpg/ORCA libs are
+# bundled in %{gphome}/lib and intentionally NOT required here).
+Requires:       apr bzip2-libs krb5-libs libcurl libevent libgcc libstdc++
+Requires:       libuuid libuv libxml2 libyaml libzstd openldap openssl-libs
+Requires:       pam perl perl-libs python3 python3-libs readline zlib
+# Runtime tools used by the management utilities (gpinitsystem, gpstart, ...).
+Requires:       bash coreutils iproute less net-tools openssh openssh-clients
+Requires:       openssh-server rsync sed tar which
+Requires:       python3-psutil python3-psycopg2 python3-pyyaml
+Provides:       greenplum-db = %{version}-%{release}
+
+%description
+WarehousePG (WHPG) is an advanced, fully featured, open source data warehouse
+based on Greenplum Database and PostgreSQL, delivering rapid analytics on
+petabyte-scale data volumes.
+
+This package installs WarehousePG %{gpversion} into %{gphome} and maintains the
+version-less convenience symlink %{gphomebase}/%{gpname} -> %{gphome}.
+
+%prep
+# The Source0 tarball is a prebuilt tree; nothing to unpack in %%prep.
+
+%install
+rm -rf %{buildroot}
+mkdir -p %{buildroot}%{gphome}
+tar xzf %{SOURCE0} -C %{buildroot}%{gphome}
+# NOTE: greenplum_path.sh is self-locating — it derives GPHOME from its own
+# directory at source-time — so it needs no rewrite and stays correct whether
+# sourced through %{gphome} or the version-less %{gpname} symlink.
+
+%files
+%{gphome}
+
+%post
+# Point the version-less path at this release.
+ln -sfn %{gphome} %{gphomebase}/%{gpname}
+cat <<EOF
+WarehousePG %{gpversion} installed at %{gphome}
+Symlink: %{gphomebase}/%{gpname} -> %{gphome}
+Activate with: source %{gphomebase}/%{gpname}/greenplum_path.sh
+EOF
+
+%postun
+# On full uninstall, remove the symlink only if it still points at us.
+if [ "$1" -eq 0 ]; then
+    if [ "$(readlink %{gphomebase}/%{gpname} 2>/dev/null)" = "%{gphome}" ]; then
+        rm -f %{gphomebase}/%{gpname}
+    fi
+fi
+
+%changelog
+* Tue Jul 08 2026 DataDynamics <build@datadynamics.io> - @RPM_VERSION@-@RPM_RELEASE@
+- Initial WarehousePG @GP_VERSION@ build for Rocky Linux 9

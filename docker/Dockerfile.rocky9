@@ -1,0 +1,84 @@
+# Rocky Linux 9 build environment for WarehousePG (server binary + RPM).
+#
+# By default the Makefile PULLS the upstream prebuilt image
+# (ghcr.io/warehouse-pg/whpg-rocky9-build) which is identical in spirit to this
+# file and already contains every build + packaging dependency. This Dockerfile
+# is provided so the repo is self-contained and the toolchain can be rebuilt or
+# customized:  docker build -t whpg-rocky9-build -f docker/Dockerfile.rocky9 docker
+
+FROM rockylinux:9
+
+LABEL org.opencontainers.image.title="WarehousePG Rocky 9 build toolchain"
+LABEL org.opencontainers.image.description="Build + RPM packaging environment for WarehousePG"
+
+ENV LANG=en_US.UTF-8
+ENV LC_ALL=en_US.UTF-8
+
+RUN dnf update -y \
+    && dnf groupinstall -y "Development Tools" \
+    && dnf install -y epel-release \
+    && dnf update -y \
+    && dnf config-manager --set-enabled crb
+
+RUN dnf install -y \
+    apr apr-devel \
+    autoconf automake \
+    bison \
+    boost-devel \
+    bzip2 bzip2-devel \
+    ccache \
+    cmake cmake3 \
+    createrepo_c \
+    curl-devel libcurl-devel \
+    diffutils \
+    ed \
+    flex \
+    gcc gcc-c++ \
+    git \
+    glibc-langpack-en \
+    initscripts \
+    iproute iputils \
+    java-11-openjdk java-11-openjdk-devel \
+    krb5-devel krb5-server krb5-workstation \
+    less \
+    libevent-devel \
+    libtool \
+    libuuid-devel \
+    libuv-devel \
+    libyaml libyaml-devel \
+    libxml2-devel \
+    libzstd-devel \
+    llvm-devel clang-devel \
+    lsof \
+    lz4 lz4-devel \
+    m4 \
+    make \
+    maven \
+    nc \
+    net-tools \
+    openldap-devel \
+    openssh-server openssh-clients \
+    openssl-devel \
+    pam-devel \
+    passwd \
+    perl perl-core perl-Env perl-ExtUtils-Embed perl-IPC-Run perl-Test-Simple \
+    pinentry \
+    pkgconfig \
+    procps \
+    python3-devel python3-lxml python3-psutil python3-psycopg2 python3-pytest python3-pyyaml \
+    readline-devel \
+    rpm-build rpm-sign rpmdevtools \
+    rsync \
+    screen \
+    sudo \
+    tar \
+    thrift-devel \
+    tmux \
+    util-linux \
+    vim \
+    wget \
+    which \
+    xerces-c xerces-c-devel \
+    zip unzip \
+    zlib-devel \
+    && dnf clean all
