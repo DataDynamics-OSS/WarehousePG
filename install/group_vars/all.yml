@@ -36,6 +36,32 @@ configure_limits: true
 # vm.overcommit_ratio 는 스왑 구성에 따라 조정하세요(기본값은 일반적인 권장치).
 vm_overcommit_ratio: 95
 
+# ---- 방화벽(firewalld) ------------------------------------------------------
+configure_firewall: true
+# 클러스터 노드끼리는 모든 트래픽을 허용합니다(인터커넥트가 동적 UDP 포트를
+# 쓰므로 포트 나열보다 노드 간 상호 신뢰가 안전). 소스는 인벤토리의
+# ansible_host 값에서 자동으로 만들며, 값이 호스트명이면 CIDR로 바꿔 주세요.
+firewall_trust_cluster: true
+# 위 자동 소스에 더해 수동으로 허용할 IP/CIDR(선택), 예: ["192.168.10.0/24"]
+firewall_extra_sources: []
+# 클라이언트에 개방할 포트
+firewall_client_ports:
+  - "{{ coordinator_port }}/tcp"   # 코디네이터(psql) 5432
+  - "5888/tcp"                     # PXF 서비스
+# gpfdist 등 추가 개방(선택), 예: ["8080-8090/tcp"]
+firewall_extra_ports: []
+
+# ---- 시간 동기화(chrony) / 타임존 ------------------------------------------
+configure_chrony: true
+chrony_servers:
+  - "0.pool.ntp.org iburst"
+  - "1.pool.ntp.org iburst"
+  - "2.pool.ntp.org iburst"
+# 이 노드를 사내 NTP 서버로 제공할 대역(선택), 예: "192.168.10.0/24"
+chrony_allow: ""
+set_timezone: true
+timezone: "Asia/Seoul"
+
 # ---- 클러스터 초기화(선택) --------------------------------------------------
 # gpinitsystem 은 환경 의존적이고 파괴적일 수 있어 기본은 비활성입니다.
 # 데이터 디렉터리와 포트를 검토한 뒤 init_cluster=true 로 실행하세요.

@@ -1,0 +1,50 @@
+---
+# firewalld 로 클러스터 노드 간 트래픽을 허용하고 클라이언트 포트를 개방합니다.
+# 인터커넥트가 동적 UDP 포트를 사용하므로, 세그먼트/미러/인터커넥트 포트를
+# 일일이 여는 대신 클러스터 노드 소스에 대해 전체 트래픽을 허용합니다.
+
+- name: firewalld 설치
+  ansible.builtin.dnf:
+    name: firewalld
+    state: present
+  when: configure_firewall | bool
+
+- name: firewalld 기동
+  ansible.builtin.service:
+    name: firewalld
+    state: started
+    enabled: true
+  when: configure_firewall | bool
+
+- name: 클러스터 노드 소스 목록 구성
+  ansible.builtin.set_fact:
+    _cluster_sources: >-
+      {{ (groups['whpg_cluster'] | map('extract', hostvars, 'ansible_host')
+          | select('defined') | list) + firewall_extra_sources }}
+  when: configure_firewall | bool and firewall_trust_cluster | bool
+
+- name: 클러스터 노드 간 전체 트래픽 허용(rich rule)
+  ansible.posix.firewalld:
+    rich_rule: "rule family=ipv4 source address={{ item }} accept"
+    permanent: true
+    immediate: true
+    state: enabled
+  loop: "{{ _cluster_sources | default([]) }}"
+  when: configure_firewall | bool and firewall_trust_cluster | bool
+
+- name: 클라이언트 포트 개방
+  ansible.posix.firewalld:
+    port: "{{ item }}"
+    permanent: true
+    immediate: true
+    state: enabled
+  loop: "{{ firewall_client_ports + firewall_extra_ports }}"
+  when: configure_firewall | bool
+
+- name: SSH 서비스 허용
+  ansible.posix.firewalld:
+    service: ssh
+    permanent: true
+    immediate: true
+    state: enabled
+  when: configure_firewall | bool

@@ -1,0 +1,41 @@
+---
+# 시간 동기화(chrony)와 타임존. 세그먼트 간 시계 오차는 WarehousePG 운영에
+# 문제를 일으키므로 모든 노드의 시각을 맞춥니다.
+
+- name: chrony 설치
+  ansible.builtin.dnf:
+    name: chrony
+    state: present
+  when: configure_chrony | bool
+
+- name: 타임존 설정({{ timezone }})
+  community.general.timezone:
+    name: "{{ timezone }}"
+  when: set_timezone | bool
+
+- name: chrony.conf 배치
+  ansible.builtin.template:
+    src: chrony.conf.j2
+    dest: /etc/chrony.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: restart chronyd
+  when: configure_chrony | bool
+
+- name: chronyd 기동
+  ansible.builtin.service:
+    name: chronyd
+    state: started
+    enabled: true
+  when: configure_chrony | bool
+
+- name: 설정 변경 즉시 반영
+  ansible.builtin.meta: flush_handlers
+
+- name: 시각 즉시 동기화(makestep)
+  ansible.builtin.command: chronyc makestep
+  register: chrony_makestep
+  changed_when: false
+  failed_when: false
+  when: configure_chrony | bool

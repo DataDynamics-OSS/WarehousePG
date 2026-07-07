@@ -7,12 +7,16 @@
 #   ansible-playbook site.yml -e init_cluster=true   # 클러스터 초기화까지
 # =============================================================================
 
-- name: OS 준비 · gpadmin 계정 · SSH 키 교환
+- name: OS 준비 · 시간 동기화 · 방화벽 · gpadmin 계정 · SSH 키 교환
   hosts: whpg_cluster
   gather_facts: true
   roles:
     - role: common
       tags: [os]
+    - role: chrony
+      tags: [os, chrony, time]
+    - role: firewall
+      tags: [os, firewall]
     - role: gpadmin
       tags: [os, gpadmin]
     - role: ssh_exchange
