@@ -12,7 +12,8 @@ ENVS := \
   -e GP_VERSION=$(GP_VERSION) -e RPM_VERSION=$(RPM_VERSION) \
   -e RPM_RELEASE=$(RPM_RELEASE) -e GPHOME_BASE=$(GPHOME_BASE) \
   -e GP_NAME=$(GP_NAME) -e EL_VERSION=$(EL_VERSION) -e ARCH=$(ARCH) \
-  -e TARBALL=$(TARBALL)
+  -e TARBALL=$(TARBALL) \
+  -e PXF_REPO_URL=$(PXF_REPO_URL) -e PXF_REF=$(PXF_REF) -e GO_VERSION=$(GO_VERSION)
 
 # Named volume keeps ccache warm across runs (much faster rebuilds).
 DOCKER_RUN := docker run --rm --privileged \
@@ -22,7 +23,7 @@ DOCKER_RUN := docker run --rm --privileged \
   -v whpg-ccache:/root/.ccache \
   $(ENVS) $(IMAGE)
 
-.PHONY: all image source binary rpm rpm-only verify shell clean
+.PHONY: all image source binary rpm rpm-only pxf verify shell clean
 
 ## all: image + source + binary tarball + rpm
 all: rpm
@@ -45,6 +46,10 @@ rpm: binary rpm-only
 ## rpm-only: build only the RPM from an existing tarball (skips compile)
 rpm-only:
 	$(DOCKER_RUN) bash /scripts/build-rpm.sh
+
+## pxf: build PXF (apache/cloudberry-pxf) against the WHPG tarball -> pxf rpm + tarball
+pxf:
+	$(DOCKER_RUN) bash /scripts/build-pxf.sh
 
 ## verify: extract the tarball in a throwaway container and print the version
 verify:

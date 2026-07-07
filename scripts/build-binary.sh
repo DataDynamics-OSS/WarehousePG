@@ -21,9 +21,14 @@ log "Building $(cat VERSION 2>/dev/null || echo "${GP_VERSION}") -> ${GPHOME}"
 
 # Configure flags mirror the upstream CI (.github/workflows/whpg-ci.yml),
 # minus test-only options. Prefix is the FINAL, versioned GPHOME.
+#   --enable-gpcloud : builds the S3 external-table protocol (s3://) + gpcheckcloud.
+#                      OFF by default despite the "enabled by default" comment in
+#                      configure, so it must be requested explicitly.
+# NOTE: gpperfmon was removed in WHPG/GPDB 7 (the old --disable-gpperfmon flag is
+# an unrecognized no-op here), so there is nothing to enable for it.
 CC='ccache gcc -m64' \
 CFLAGS='-O2 -g3' LDFLAGS='-Wl,--enable-new-dtags -Wl,--export-dynamic' \
-./configure --disable-gpperfmon --with-gssapi --enable-mapreduce --enable-orafce \
+./configure --enable-gpcloud --with-gssapi --enable-mapreduce --enable-orafce \
             --enable-ic-proxy --enable-orca --with-libxml --with-uuid=e2fs \
             --with-pgport=5432 --with-llvm --with-perl --with-python --with-openssl \
             --with-pam --with-ldap --with-includes="" --with-libraries="" \
