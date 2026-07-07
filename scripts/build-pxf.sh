@@ -55,8 +55,10 @@ export GOFLAGS=-mod=mod
 go version
 
 # 3. Fetch PXF source (keep .git — the stage target records the commit sha).
+#    PXF_REF may be a commit SHA, tag, or branch, so clone then checkout.
 rm -rf "$PXF_SRC"
-git clone --depth 1 --branch "$PXF_REF" "$PXF_REPO_URL" "$PXF_SRC"
+git clone "$PXF_REPO_URL" "$PXF_SRC"
+git -C "$PXF_SRC" checkout --quiet "$PXF_REF"
 cd "$PXF_SRC"
 export PXF_HOME="${GPHOME}/pxf"
 
