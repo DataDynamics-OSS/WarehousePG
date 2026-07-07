@@ -1,0 +1,53 @@
+---
+# OS 사전 준비: SELinux, 커널 파라미터, 리소스 한계, 기본 유틸리티
+
+- name: 기본 유틸리티 설치
+  ansible.builtin.dnf:
+    name:
+      - rsync
+      - openssh-clients
+      - openssh-server
+      - which
+      - less
+      - iproute
+      - net-tools
+    state: present
+
+- name: SELinux 비활성화(런타임)
+  ansible.builtin.command: setenforce 0
+  register: setenforce_result
+  changed_when: setenforce_result.rc == 0
+  failed_when: false
+  when: disable_selinux | bool
+
+- name: SELinux 비활성화(영구)
+  ansible.builtin.lineinfile:
+    path: /etc/selinux/config
+    regexp: '^SELINUX='
+    line: 'SELINUX=disabled'
+  when: disable_selinux | bool
+
+- name: 커널 파라미터(sysctl) 적용
+  ansible.builtin.template:
+    src: 90-whpg-sysctl.conf.j2
+    dest: /etc/sysctl.d/90-whpg.conf
+    owner: root
+    group: root
+    mode: '0644'
+  notify: reload sysctl
+  when: configure_sysctl | bool
+
+- name: 리소스 한계(limits) 적용
+  ansible.builtin.template:
+    src: 90-whpg-limits.conf.j2
+    dest: /etc/security/limits.d/90-whpg.conf
+    owner: root
+    group: root
+    mode: '0644'
+  when: configure_limits | bool
+
+- name: sshd 실행 보장
+  ansible.builtin.service:
+    name: sshd
+    state: started
+    enabled: true

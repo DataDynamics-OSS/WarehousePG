@@ -1,0 +1,54 @@
+---
+# =============================================================================
+# WarehousePG / PXF 설치 공통 변수
+# =============================================================================
+
+# ---- WarehousePG 버전/경로 --------------------------------------------------
+whpg_version: "7.5.0-WHPG"
+gphome: "/usr/local/greenplum-db-{{ whpg_version }}"
+gphome_link: "/usr/local/greenplum-db"
+
+# ---- PXF 버전/경로 ----------------------------------------------------------
+install_pxf: true
+pxf_home: "/usr/local/pxf-gp7"
+# PXF_BASE는 서버 설정/로그가 쌓이는 쓰기 가능한 위치. 기본은 pxf_home과 동일.
+pxf_base: "/usr/local/pxf-gp7"
+
+# ---- 패키지(RPM) 출처 -------------------------------------------------------
+# 두 가지 방식 중 하나를 사용합니다.
+#  (1) RPM 파일을 install/files/ 아래 두고 파일명을 *_rpm_file 에 지정
+#  (2) *_rpm_url 에 다운로드 URL을 지정(설정되면 파일보다 우선)
+whpg_rpm_file: "warehouse-pg-7.5.0-2.el9.x86_64.rpm"
+whpg_rpm_url: ""
+pxf_rpm_file: "pxf-gp7-6.10.1-SNAPSHOT.el9.x86_64.rpm"
+pxf_rpm_url: ""
+
+# ---- gpadmin 계정 -----------------------------------------------------------
+gpadmin_user: "gpadmin"
+gpadmin_group: "gpadmin"
+# 초기 비밀번호(설치 후 반드시 변경). ssh 키 교환/노드 접속에 사용됩니다.
+gpadmin_password: "changeme"
+
+# ---- OS 튜닝 ----------------------------------------------------------------
+disable_selinux: true
+configure_sysctl: true
+configure_limits: true
+# vm.overcommit_ratio 는 스왑 구성에 따라 조정하세요(기본값은 일반적인 권장치).
+vm_overcommit_ratio: 95
+
+# ---- 클러스터 초기화(선택) --------------------------------------------------
+# gpinitsystem 은 환경 의존적이고 파괴적일 수 있어 기본은 비활성입니다.
+# 데이터 디렉터리와 포트를 검토한 뒤 init_cluster=true 로 실행하세요.
+init_cluster: false
+coordinator_hostname: "cdw"
+coordinator_data_dir: "/data/coordinator"
+coordinator_port: 5432
+segment_prefix: "gpseg"
+segment_port_base: 6000
+mirror_port_base: 7000
+with_mirrors: false
+# 세그먼트 호스트별 프라이머리 데이터 디렉터리 목록(개수 = 호스트당 세그먼트 수)
+segment_data_dirs:
+  - "/data/primary"
+mirror_data_dirs:
+  - "/data/mirror"

@@ -1,0 +1,42 @@
+---
+# =============================================================================
+# WarehousePG + PXF 설치 플레이북
+#
+#   ansible-playbook site.yml
+#   ansible-playbook site.yml --tags os,install      # OS 준비 + 패키지 설치만
+#   ansible-playbook site.yml -e init_cluster=true   # 클러스터 초기화까지
+# =============================================================================
+
+- name: OS 준비 · gpadmin 계정 · SSH 키 교환
+  hosts: whpg_cluster
+  gather_facts: true
+  roles:
+    - role: common
+      tags: [os]
+    - role: gpadmin
+      tags: [os, gpadmin]
+    - role: ssh_exchange
+      tags: [os, ssh]
+
+- name: WarehousePG 서버 설치
+  hosts: whpg_cluster
+  gather_facts: false
+  roles:
+    - role: warehouse_pg
+      tags: [install, whpg]
+
+- name: PXF 설치
+  hosts: whpg_cluster
+  gather_facts: false
+  roles:
+    - role: pxf
+      tags: [install, pxf]
+      when: install_pxf | bool
+
+- name: 클러스터 초기화(선택) 및 PXF 등록
+  hosts: coordinator
+  gather_facts: false
+  roles:
+    - role: cluster_init
+      tags: [init]
+      when: init_cluster | bool

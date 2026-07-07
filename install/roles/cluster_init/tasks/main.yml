@@ -1,0 +1,85 @@
+---
+# 선택: gpinitsystem 으로 클러스터를 초기화하고 PXF를 GPHOME에 등록/기동.
+# init_cluster=true 일 때만, 코디네이터 노드에서 실행됩니다.
+# 데이터 디렉터리와 포트를 반드시 사전에 검토하세요.
+
+- name: 코디네이터 데이터 디렉터리 준비
+  ansible.builtin.file:
+    path: "{{ coordinator_data_dir }}"
+    state: directory
+    owner: "{{ gpadmin_user }}"
+    group: "{{ gpadmin_group }}"
+    mode: '0755'
+
+- name: 세그먼트 데이터 디렉터리 준비(각 세그먼트 호스트)
+  delegate_to: "{{ item.0 }}"
+  ansible.builtin.file:
+    path: "{{ item.1 }}"
+    state: directory
+    owner: "{{ gpadmin_user }}"
+    group: "{{ gpadmin_group }}"
+    mode: '0755'
+  loop: "{{ groups['segments'] | product(segment_data_dirs + (mirror_data_dirs if with_mirrors | bool else [])) | list }}"
+
+- name: gpinitsystem 설정 파일 배치
+  ansible.builtin.template:
+    src: gpinitsystem_config.j2
+    dest: "/home/{{ gpadmin_user }}/gpinitsystem_config"
+    owner: "{{ gpadmin_user }}"
+    group: "{{ gpadmin_group }}"
+    mode: '0644'
+
+- name: 세그먼트 호스트 파일 배치
+  ansible.builtin.copy:
+    dest: "/home/{{ gpadmin_user }}/hostfile_gpinitsystem"
+    content: "{{ groups['segments'] | join('\n') }}\n"
+    owner: "{{ gpadmin_user }}"
+    group: "{{ gpadmin_group }}"
+    mode: '0644'
+
+- name: 코디네이터 데이터 디렉터리에 기존 클러스터 존재 여부 확인
+  ansible.builtin.stat:
+    path: "{{ coordinator_data_dir }}/{{ segment_prefix }}-1"
+  register: existing_cluster
+
+- name: gpinitsystem 실행
+  become: true
+  become_user: "{{ gpadmin_user }}"
+  ansible.builtin.shell: >
+    source {{ gphome_link }}/greenplum_path.sh &&
+    gpinitsystem -c /home/{{ gpadmin_user }}/gpinitsystem_config
+    -h /home/{{ gpadmin_user }}/hostfile_gpinitsystem -a
+    {{ '-s ' + hostvars[groups['standby'][0]].inventory_hostname if groups['standby'] | default([]) | length > 0 else '' }}
+  args:
+    executable: /bin/bash
+  register: gpinit
+  changed_when: "'Greenplum Database instance successfully created' in gpinit.stdout"
+  failed_when: gpinit.rc != 0 and 'successfully created' not in gpinit.stdout
+  when: not existing_cluster.stat.exists
+
+- name: PXF 클러스터 등록(GPHOME에 확장 배포)
+  become: true
+  become_user: "{{ gpadmin_user }}"
+  ansible.builtin.shell: >
+    source {{ gphome_link }}/greenplum_path.sh &&
+    export PXF_BASE={{ pxf_base }} COORDINATOR_DATA_DIRECTORY={{ coordinator_data_dir }}/{{ segment_prefix }}-1 &&
+    {{ pxf_home }}/bin/pxf cluster register
+  args:
+    executable: /bin/bash
+  register: pxf_register
+  changed_when: pxf_register.rc == 0
+  when: install_pxf | bool
+
+- name: PXF 준비 및 클러스터 기동
+  become: true
+  become_user: "{{ gpadmin_user }}"
+  ansible.builtin.shell: >
+    source {{ gphome_link }}/greenplum_path.sh &&
+    export PXF_BASE={{ pxf_base }} COORDINATOR_DATA_DIRECTORY={{ coordinator_data_dir }}/{{ segment_prefix }}-1 &&
+    {{ pxf_home }}/bin/pxf cluster prepare && {{ pxf_home }}/bin/pxf cluster start
+  args:
+    executable: /bin/bash
+  register: pxf_start
+  changed_when: pxf_start.rc == 0
+  failed_when: false
+  when: install_pxf | bool

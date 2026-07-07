@@ -1,0 +1,4 @@
+# 이 디렉터리에 설치할 RPM을 두세요.
+#   warehouse-pg-7.5.0-2.el9.x86_64.rpm
+#   pxf-gp7-6.10.1-SNAPSHOT.el9.x86_64.rpm
+# (파일명은 group_vars/all.yml 의 whpg_rpm_file / pxf_rpm_file 과 일치)

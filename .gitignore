@@ -1,2 +1,8 @@
 # Build output (source export, tarballs, rpms, checksums)
 /output/
+
+# 설치용 RPM(로컬 배치, 커밋 금지)
+install/files/*.rpm
+install/files/*.tar.gz
+install/_test_*.yml
+install/_test_*.ini

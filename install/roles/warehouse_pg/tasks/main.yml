@@ -1,0 +1,62 @@
+---
+# WarehousePG 서버 RPM 설치
+
+- name: WarehousePG RPM 출처 판별
+  ansible.builtin.set_fact:
+    whpg_use_url: "{{ whpg_rpm_url | length > 0 }}"
+
+- name: WarehousePG RPM 전송(로컬 파일)
+  ansible.builtin.copy:
+    src: "{{ whpg_rpm_file }}"
+    dest: "/tmp/{{ whpg_rpm_file }}"
+    mode: '0644'
+  when: not whpg_use_url
+
+- name: WarehousePG RPM 설치
+  ansible.builtin.dnf:
+    name: "{{ whpg_rpm_url if whpg_use_url else '/tmp/' + whpg_rpm_file }}"
+    state: present
+    disable_gpg_check: true
+
+- name: 버전 없는 심링크 확인
+  ansible.builtin.stat:
+    path: "{{ gphome_link }}"
+  register: gphome_link_stat
+
+- name: 심링크 보정({{ gphome_link }} -> {{ gphome }})
+  ansible.builtin.file:
+    src: "{{ gphome }}"
+    dest: "{{ gphome_link }}"
+    state: link
+    force: true
+  when: not gphome_link_stat.stat.exists
+
+- name: GPHOME 소유권을 gpadmin 으로 변경
+  ansible.builtin.file:
+    path: "{{ gphome }}"
+    owner: "{{ gpadmin_user }}"
+    group: "{{ gpadmin_group }}"
+    recurse: true
+
+- name: gpadmin 로그인 시 greenplum_path.sh 자동 로드
+  ansible.builtin.lineinfile:
+    path: "/home/{{ gpadmin_user }}/.bashrc"
+    line: "source {{ gphome_link }}/greenplum_path.sh"
+    create: true
+    owner: "{{ gpadmin_user }}"
+    group: "{{ gpadmin_group }}"
+    mode: '0644'
+
+- name: 설치 검증(gp-version)
+  become: true
+  become_user: "{{ gpadmin_user }}"
+  ansible.builtin.shell: >
+    source {{ gphome_link }}/greenplum_path.sh && postgres --gp-version
+  args:
+    executable: /bin/bash
+  register: gp_version
+  changed_when: false
+
+- name: gp-version 출력
+  ansible.builtin.debug:
+    msg: "{{ gp_version.stdout }}"

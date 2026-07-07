@@ -1,0 +1,26 @@
+---
+# gpadmin 그룹/계정 생성 및 sudo 권한 부여
+
+- name: gpadmin 그룹 생성
+  ansible.builtin.group:
+    name: "{{ gpadmin_group }}"
+    state: present
+
+- name: gpadmin 계정 생성
+  ansible.builtin.user:
+    name: "{{ gpadmin_user }}"
+    group: "{{ gpadmin_group }}"
+    shell: /bin/bash
+    home: "/home/{{ gpadmin_user }}"
+    password: "{{ gpadmin_password | password_hash('sha512') }}"
+    update_password: on_create
+    state: present
+
+- name: gpadmin sudo 권한(NOPASSWD)
+  ansible.builtin.copy:
+    dest: /etc/sudoers.d/gpadmin
+    content: "{{ gpadmin_user }} ALL=(ALL) NOPASSWD: ALL\n"
+    owner: root
+    group: root
+    mode: '0440'
+    validate: 'visudo -cf %s'

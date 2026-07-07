@@ -1,0 +1,20 @@
+# gpinitsystem 설정 (Ansible 관리)
+ARRAY_NAME="WarehousePG {{ whpg_version }}"
+SEG_PREFIX={{ segment_prefix }}
+PORT_BASE={{ segment_port_base }}
+
+# 세그먼트 호스트별 프라이머리 데이터 디렉터리
+declare -a DATA_DIRECTORY=({% for d in segment_data_dirs %}{{ d }} {% endfor %})
+
+COORDINATOR_HOSTNAME={{ coordinator_hostname }}
+COORDINATOR_DIRECTORY={{ coordinator_data_dir }}
+COORDINATOR_PORT={{ coordinator_port }}
+
+TRUSTED_SHELL=ssh
+ENCODING=UNICODE
+{% if with_mirrors | bool %}
+
+# 미러 구성
+MIRROR_PORT_BASE={{ mirror_port_base }}
+declare -a MIRROR_DATA_DIRECTORY=({% for d in mirror_data_dirs %}{{ d }} {% endfor %})
+{% endif %}

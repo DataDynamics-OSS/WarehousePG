@@ -1,0 +1,6 @@
+# WarehousePG 권장 리소스 한계 (Ansible 관리 — 직접 수정 금지)
+{{ gpadmin_user }} soft nofile 524288
+{{ gpadmin_user }} hard nofile 524288
+{{ gpadmin_user }} soft nproc 131072
+{{ gpadmin_user }} hard nproc 131072
+{{ gpadmin_user }} soft core unlimited
