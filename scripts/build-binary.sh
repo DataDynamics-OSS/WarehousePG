@@ -40,6 +40,7 @@ make -j"$(nproc)" install
 
 # Vendor shared libs (xerces-c, LLVM) so the tree is self-contained.
 declare -a library_search_path vendored_libs
+# shellcheck disable=SC2207  # ld.so.conf entries are whitespace-free, splitting is safe
 library_search_path+=($(cat /etc/ld.so.conf.d/*.conf 2>/dev/null | grep -v '#' || true))
 library_search_path+=(/lib64 /usr/lib64 /lib /usr/lib)
 vendored_libs=(libxerces-c{,-3.1,-3.2}.so libLLVM{,-15,-15.0.7,-16,-17}.so)

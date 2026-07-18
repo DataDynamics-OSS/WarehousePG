@@ -1,0 +1,7 @@
+WarehousePG build and deployment tooling
+Copyright 2026 DataDynamics, Inc.
+
+This repository contains build, packaging, and installation tooling for
+WarehousePG (https://github.com/warehouse-pg/warehouse-pg). It does not
+contain the WarehousePG database source code itself. WarehousePG and PXF
+are distributed under their own upstream licenses (Apache License 2.0).
