@@ -1,5 +1,5 @@
 WarehousePG build and deployment tooling
-Copyright 2026 DataDynamics, Inc.
+Copyright 2026 Data Dynamics Inc
 
 This repository contains build, packaging, and installation tooling for
 WarehousePG (https://github.com/warehouse-pg/warehouse-pg). It does not
