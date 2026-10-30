@@ -4,7 +4,7 @@
 # =============================================================================
 
 # ---- WarehousePG 버전/경로 --------------------------------------------------
-whpg_version: "7.5.0-WHPG"
+whpg_version: "7.6.1-WHPG"
 gphome: "/usr/local/greenplum-db-{{ whpg_version }}"
 gphome_link: "/usr/local/greenplum-db"
 
@@ -18,7 +18,7 @@ pxf_base: "/usr/local/pxf-gp7"
 # 두 가지 방식 중 하나를 사용합니다.
 #  (1) RPM 파일을 install/files/ 아래 두고 파일명을 *_rpm_file 에 지정
 #  (2) *_rpm_url 에 다운로드 URL을 지정(설정되면 파일보다 우선)
-whpg_rpm_file: "warehouse-pg-7.5.0-2.el9.x86_64.rpm"
+whpg_rpm_file: "warehouse-pg-7.6.1-1.el9.x86_64.rpm"
 whpg_rpm_url: ""
 pxf_rpm_file: "pxf-gp7-6.10.1-SNAPSHOT.el9.x86_64.rpm"
 pxf_rpm_url: ""

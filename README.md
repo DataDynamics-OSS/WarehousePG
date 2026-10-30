@@ -51,8 +51,8 @@ individually:
 
 ```bash
 make image        # prepare the Rocky 9 toolchain image (pull or local build)
-make binary       # -> output/artifacts/server-build-7.5.0-WHPG-rhel9_x86_64.tar.gz
-make rpm          # -> output/artifacts/warehouse-pg-7.5.0-2.el9.x86_64.rpm
+make binary       # -> output/artifacts/server-build-7.6.1-WHPG-rhel9_x86_64.tar.gz
+make rpm          # -> output/artifacts/warehouse-pg-7.6.1-1.el9.x86_64.rpm
 make verify       # unpack the tar.gz, check gp-version and library resolution
 make pxf          # -> output/artifacts/pxf-gp7-6.10.1-SNAPSHOT.el9.x86_64.rpm (+ tar.gz)
 ```
@@ -70,7 +70,7 @@ already-built tar.gz, use `make rpm-only`. Every artifact is accompanied by a
 Development builds conventionally install into `/usr/local/greenplum-db-devel`,
 but the releases this repository produces follow the standard Greenplum/GPDB
 layout: a **versioned directory plus an unversioned symlink**. The actual
-install goes to `/usr/local/greenplum-db-7.5.0-WHPG`, and the RPM maintains a
+install goes to `/usr/local/greenplum-db-7.6.1-WHPG`, and the RPM maintains a
 `/usr/local/greenplum-db` symlink pointing at it. Users always activate with
 `source /usr/local/greenplum-db/greenplum_path.sh`, and multiple versions can
 sit side by side with only the symlink switching between them. The path scheme
@@ -82,7 +82,7 @@ is configurable via `GP_NAME` and `GPHOME_BASE` in `config/build.env`.
 directory**. In a source tree exported as an archive that condition does not
 hold, so configure falls back to its default (`7.0.0-beta.0`). Therefore
 `prepare-source.sh` exports the tag without `.git` and plants a `VERSION` file
-(`7.5.0-WHPG build commit:<sha>`) directly. This is the same official mechanism
+(`7.6.1-WHPG build commit:<sha>`) directly. This is the same official mechanism
 used for release tarballs, and it makes `postgres --gp-version` report the real
 tag accurately. Always build from a clean source tree — leftovers from a
 previous build can bake in the wrong version.
@@ -93,8 +93,8 @@ previous build can bake in the wrong version.
 tars up that whole tree. `build-rpm.sh` feeds the tar.gz to
 `rpm/warehouse-pg.spec.in`; the spec is relocatable (`Prefix:`) and manages the
 `greenplum-db` symlink in `%post`/`%postun`. Since RPM's `Version` field cannot
-contain a hyphen, the numeric version (`7.5.0`) goes into the RPM field while
-the full version (`7.5.0-WHPG`) is used for the install directory and the
+contain a hyphen, the numeric version (`7.6.1`) goes into the RPM field while
+the full version (`7.6.1-WHPG`) is used for the install directory and the
 binary version string.
 
 ### Bundled extensions

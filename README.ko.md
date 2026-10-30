@@ -26,8 +26,8 @@ Docker와 `git`이 필요합니다. 컨테이너 이미지를 받기 위한 `ghc
 
 ```bash
 make image        # Rocky 9 툴체인 이미지 준비(pull 또는 로컬 build)
-make binary       # -> output/artifacts/server-build-7.5.0-WHPG-rhel9_x86_64.tar.gz
-make rpm          # -> output/artifacts/warehouse-pg-7.5.0-2.el9.x86_64.rpm
+make binary       # -> output/artifacts/server-build-7.6.1-WHPG-rhel9_x86_64.tar.gz
+make rpm          # -> output/artifacts/warehouse-pg-7.6.1-1.el9.x86_64.rpm
 make verify       # tar.gz를 풀어 gp-version과 라이브러리 해석 여부 확인
 make pxf          # -> output/artifacts/pxf-gp7-6.10.1-SNAPSHOT.el9.x86_64.rpm (+ tar.gz)
 ```
@@ -38,15 +38,15 @@ PXF는 `make binary`로 만든 WarehousePG tar.gz가 있어야 빌드할 수 있
 
 ### 설치 경로에서 `-devel`을 뗀 이유
 
-개발용 빌드는 관례적으로 `/usr/local/greenplum-db-devel`에 설치되지만, 이 저장소가 만드는 릴리스는 **버전이 박힌 디렉터리와 버전 없는 심링크**를 함께 두는 Greenplum/GPDB 표준 배치를 따릅니다. 즉 실제 설치는 `/usr/local/greenplum-db-7.5.0-WHPG`에 이뤄지고, RPM이 `/usr/local/greenplum-db`라는 심링크를 그 디렉터리로 걸어 줍니다. 사용자는 항상 `source /usr/local/greenplum-db/greenplum_path.sh`로 활성화하면 되고, 여러 버전을 나란히 두고 심링크만 바꿔 전환할 수 있습니다. 경로 규칙은 `config/build.env`의 `GP_NAME`, `GPHOME_BASE`로 바꿀 수 있습니다.
+개발용 빌드는 관례적으로 `/usr/local/greenplum-db-devel`에 설치되지만, 이 저장소가 만드는 릴리스는 **버전이 박힌 디렉터리와 버전 없는 심링크**를 함께 두는 Greenplum/GPDB 표준 배치를 따릅니다. 즉 실제 설치는 `/usr/local/greenplum-db-7.6.1-WHPG`에 이뤄지고, RPM이 `/usr/local/greenplum-db`라는 심링크를 그 디렉터리로 걸어 줍니다. 사용자는 항상 `source /usr/local/greenplum-db/greenplum_path.sh`로 활성화하면 되고, 여러 버전을 나란히 두고 심링크만 바꿔 전환할 수 있습니다. 경로 규칙은 `config/build.env`의 `GP_NAME`, `GPHOME_BASE`로 바꿀 수 있습니다.
 
 ### 올바른 버전이 바이너리에 새겨지도록
 
-`getversion`은 `.git`이 **디렉터리일 때만** `git describe`로 태그를 읽습니다. 아카이브로 내보낸 소스 트리에서는 이 조건이 성립하지 않아 configure의 기본값(`7.0.0-beta.0`)으로 후퇴합니다. 그래서 `prepare-source.sh`는 태그를 `.git` 없이 내보낸 뒤 `VERSION` 파일(`7.5.0-WHPG build commit:<sha>`)을 직접 심습니다. 이는 릴리스 tarball을 만들 때 쓰는 정식 방식이며, 덕분에 `postgres --gp-version`이 실제 태그를 정확히 보고합니다. 반드시 깨끗한 소스에서 빌드해야 하며, 이전 빌드 산물이 남은 트리에서는 엉뚱한 버전이 박힐 수 있습니다.
+`getversion`은 `.git`이 **디렉터리일 때만** `git describe`로 태그를 읽습니다. 아카이브로 내보낸 소스 트리에서는 이 조건이 성립하지 않아 configure의 기본값(`7.0.0-beta.0`)으로 후퇴합니다. 그래서 `prepare-source.sh`는 태그를 `.git` 없이 내보낸 뒤 `VERSION` 파일(`7.6.1-WHPG build commit:<sha>`)을 직접 심습니다. 이는 릴리스 tarball을 만들 때 쓰는 정식 방식이며, 덕분에 `postgres --gp-version`이 실제 태그를 정확히 보고합니다. 반드시 깨끗한 소스에서 빌드해야 하며, 이전 빌드 산물이 남은 트리에서는 엉뚱한 버전이 박힐 수 있습니다.
 
 ### tar.gz에서 RPM으로
 
-`build-binary.sh`는 버전이 박힌 GPHOME을 `--prefix`로 삼아 컴파일한 뒤 그 트리를 통째로 tar.gz로 묶습니다. `build-rpm.sh`는 이 tar.gz를 `rpm/warehouse-pg.spec.in`에 넘겨 RPM으로 만드는데, 이 스펙은 재배치 가능(`Prefix:`)하며 `%post`/`%postun`에서 `greenplum-db` 심링크를 관리합니다. RPM의 `Version` 필드에는 하이픈을 넣을 수 없으므로, 숫자 버전(`7.5.0`)을 RPM 필드에 쓰고 전체 버전(`7.5.0-WHPG`)은 설치 디렉터리와 바이너리 버전 문자열에 사용합니다.
+`build-binary.sh`는 버전이 박힌 GPHOME을 `--prefix`로 삼아 컴파일한 뒤 그 트리를 통째로 tar.gz로 묶습니다. `build-rpm.sh`는 이 tar.gz를 `rpm/warehouse-pg.spec.in`에 넘겨 RPM으로 만드는데, 이 스펙은 재배치 가능(`Prefix:`)하며 `%post`/`%postun`에서 `greenplum-db` 심링크를 관리합니다. RPM의 `Version` 필드에는 하이픈을 넣을 수 없으므로, 숫자 버전(`7.6.1`)을 RPM 필드에 쓰고 전체 버전(`7.6.1-WHPG`)은 설치 디렉터리와 바이너리 버전 문자열에 사용합니다.
 
 ### 함께 담기는 확장
 

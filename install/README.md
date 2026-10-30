@@ -36,7 +36,7 @@ ansible-playbook site.yml -e install_pxf=false
 
 ## 설치 결과
 
-플레이북이 끝나면 모든 노드에 WarehousePG가 `/usr/local/greenplum-db-7.5.0-WHPG`로 설치되고 `/usr/local/greenplum-db` 심링크가 걸립니다. gpadmin 로그인 셸에서는 `greenplum_path.sh`가 자동으로 로드되어 `postgres --gp-version`으로 버전을 확인할 수 있습니다. PXF는 `/usr/local/pxf-gp7`에 설치되고 gpadmin 환경에 `PXF_HOME`, `PXF_BASE`, `PATH`가 설정되어 `pxf version`이 동작합니다. 다만 이 시점까지는 패키지 설치만 이뤄진 상태이며, 데이터베이스 클러스터는 아직 초기화되지 않았습니다.
+플레이북이 끝나면 모든 노드에 WarehousePG가 `/usr/local/greenplum-db-7.6.1-WHPG`로 설치되고 `/usr/local/greenplum-db` 심링크가 걸립니다. gpadmin 로그인 셸에서는 `greenplum_path.sh`가 자동으로 로드되어 `postgres --gp-version`으로 버전을 확인할 수 있습니다. PXF는 `/usr/local/pxf-gp7`에 설치되고 gpadmin 환경에 `PXF_HOME`, `PXF_BASE`, `PATH`가 설정되어 `pxf version`이 동작합니다. 다만 이 시점까지는 패키지 설치만 이뤄진 상태이며, 데이터베이스 클러스터는 아직 초기화되지 않았습니다.
 
 ## 클러스터 초기화(선택)
 
